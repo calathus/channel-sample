@@ -13,7 +13,7 @@ struct Info {
 
 fn get_data()-> Vec<String> {
     let mut v: Vec<String> = Vec::new();
-    for i in 0..10000 {
+    for i in 0..100 {
         let s = format!("s{}", i);
         v.push(s);
     }
@@ -39,26 +39,27 @@ fn main() {
     let vec = get_data();
     let ss_r = create_receiver(vec);
     let (info_s, info_r) = unbounded();
-    let wg = WaitGroup::new();
 
-    for i in 0..THREADS {
-        let wg0 = wg.clone();
-        let ss_r0 = ss_r.clone();
-        let info_s0 = info_s.clone();
+    thread::spawn(move || {
+        let wg = WaitGroup::new();
 
-        thread::spawn(move || {
-            process_data(i as i32, ss_r0, info_s0);
-            drop(wg0);
-        });
-    }
-    wg.wait();
+        for i in 0..THREADS {
+            let wg0 = wg.clone();
+            let ss_r0 = ss_r.clone();
+            let info_s0 = info_s.clone();
+
+            thread::spawn(move || {
+                process_data(i as i32, ss_r0, info_s0);
+                drop(wg0);
+            });
+        }
+        wg.wait();
+        drop(info_s)
+    });
 
     println!(">> start info printing.");
     for info in info_r.iter() {
         println!("n: {}, s: {}", info.n, info.s);
-        if info_r.is_empty() {
-            break;
-        }
     }
     println!("done.");
 }
