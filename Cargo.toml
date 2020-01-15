@@ -1,0 +1,7 @@
+[package]
+name = "channel-sample"
+version = "0.1.0"
+authors = ["calathus <calathus@gmail.com>"]
+
+[dependencies]
+crossbeam = "0.7.3"
